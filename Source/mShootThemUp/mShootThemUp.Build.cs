@@ -24,7 +24,8 @@ public class mShootThemUp : ModuleRules
             "mShootThemUp/Public/Components",
             "mShootThemUp/Public/Dev",
             "mShootThemUP/Public/Weapon",
-            "mShootThemUp/Public/UI"
+            "mShootThemUp/Public/UI",
+            "mShootThemUp/Public/Animations"
         });
 
         // Uncomment if you are using Slate UI
