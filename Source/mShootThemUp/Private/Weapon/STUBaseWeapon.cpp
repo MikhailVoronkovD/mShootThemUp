@@ -22,22 +22,14 @@ void ASTUBaseWeapon::BeginPlay()
     Super::BeginPlay();
 
     check(WeaponMesh);
+    CurrentAmmo = DefaultAmmo;
 }
 
-void ASTUBaseWeapon::StartFire()
-{
+void ASTUBaseWeapon::StartFire() {}
 
-}
+void ASTUBaseWeapon::StopFire() {}
 
-void ASTUBaseWeapon::StopFire()
-{
-
-}
-
-void ASTUBaseWeapon::MakeShot()
-{
-
-}
+void ASTUBaseWeapon::MakeShot() {}
 
 APlayerController* ASTUBaseWeapon::GetPlayerController() const
 {
@@ -56,16 +48,16 @@ bool ASTUBaseWeapon::GetPlayerViewPoint(FVector& ViewLocation, FRotator& ViewRot
     return true;
 }
 
-FVector ASTUBaseWeapon::GetMuzzleWorldLocation() const 
+FVector ASTUBaseWeapon::GetMuzzleWorldLocation() const
 {
     return WeaponMesh->GetSocketLocation(MuzzleSocketName);
 }
 
-bool ASTUBaseWeapon::GetTraceData(FVector& TraceStart, FVector& TraceEnd) const 
+bool ASTUBaseWeapon::GetTraceData(FVector& TraceStart, FVector& TraceEnd) const
 {
     FVector ViewLocation;
     FRotator ViewRotation;
-    if(!GetPlayerViewPoint(ViewLocation, ViewRotation)) return false;
+    if (!GetPlayerViewPoint(ViewLocation, ViewRotation)) return false;
 
     TraceStart = ViewLocation;
     const FVector ShootDirection = ViewRotation.Vector();
@@ -73,7 +65,7 @@ bool ASTUBaseWeapon::GetTraceData(FVector& TraceStart, FVector& TraceEnd) const
     return true;
 }
 
-void ASTUBaseWeapon::MakeHit(FHitResult& HitResult, const FVector& TraceStart, const FVector& TraceEnd) 
+void ASTUBaseWeapon::MakeHit(FHitResult& HitResult, const FVector& TraceStart, const FVector& TraceEnd)
 {
     if (!GetWorld()) return;
 
@@ -81,4 +73,42 @@ void ASTUBaseWeapon::MakeHit(FHitResult& HitResult, const FVector& TraceStart, c
     CollisionParams.AddIgnoredActor(GetOwner());
 
     GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECollisionChannel::ECC_Visibility, CollisionParams);
+}
+
+void ASTUBaseWeapon::DecreaseAmmo() 
+{
+    CurrentAmmo.Bullets--;
+    LogAmmo();
+
+    if (IsClipEmpty() && !IsAmmoEmpty())
+    {
+        ChangeClip();
+    }
+}
+
+bool ASTUBaseWeapon::IsAmmoEmpty() const 
+{
+    return !CurrentAmmo.Infinite && CurrentAmmo.Clips == 0 && IsClipEmpty();
+}
+
+bool ASTUBaseWeapon::IsClipEmpty() const 
+{
+    return CurrentAmmo.Bullets == 0;
+}
+
+void ASTUBaseWeapon::ChangeClip() 
+{
+    CurrentAmmo.Bullets = DefaultAmmo.Bullets;
+    if (!CurrentAmmo.Infinite)
+    {
+        CurrentAmmo.Clips--;
+    }
+    UE_LOG(LogBaseWeapon, Display, TEXT("------Change Clip------"));
+}
+
+void ASTUBaseWeapon::LogAmmo()
+{
+    FString AmmoInfo = "Ammo: " + FString::FromInt(CurrentAmmo.Bullets) + " / ";
+    AmmoInfo += CurrentAmmo.Infinite ? "Infinite" : FString::FromInt(CurrentAmmo.Clips);
+    UE_LOG(LogBaseWeapon, Display, TEXT("%s"), *AmmoInfo);
 }
